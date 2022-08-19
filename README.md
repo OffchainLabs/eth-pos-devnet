@@ -25,3 +25,5 @@ $ docker compose up -d
  ⠿ Container eth-pos-devnet-validator-1                    Started
 ```
 Next, you can inspect the logs of the different services launched and once the mining difficulty of go-ethereum reaches 50, proof-of-stake will be activated and the Prysm beacon chain will be driving consensus of blocks.
+
+<img width="1728" alt="Screen Shot 2022-08-18 at 8 22 57 PM" src="https://user-images.githubusercontent.com/5572669/185518458-25a454a8-b70a-40a8-b3e6-d32770d16ca9.png">
