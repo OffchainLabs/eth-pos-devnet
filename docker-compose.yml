@@ -18,7 +18,20 @@ services:
       - ./execution/sk.json:/config/sk.json
   geth:
     image: "ethereum/client-go:latest"
-    command: --http --http.api "eth,engine" --authrpc.jwtsecret="/auth/jwtsecret" --datadir=/gethdata --allow-insecure-unlock --unlock="0x123463a4b065722e99115d6c222f267d9cabb524" --password="/config/geth_password.txt" --nodiscover --syncmode=full --mine
+    command:
+      - --http
+      - --http.api "eth,engine"
+      - --http.addr=0.0.0.0
+      - --authrpc.vhosts=*
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.jwtsecret="/auth/jwtsecret"
+      - --datadir=/gethdata
+      - --allow-insecure-unlock
+      - --unlock="0x123463a4b065722e99115d6c222f267d9cabb524"
+      - --password="/config/geth_password.txt"
+      - --nodiscover
+      - --syncmode=full
+      - --mine
     ports:
       - 8551:8551
       - 8545:8545
@@ -31,12 +44,30 @@ services:
       - ./jwtsecret:/auth/jwtsecret
   create-beacon-chain-genesis:
     image: "gcr.io/prysmaticlabs/prysm/cmd/prysmctl:latest"
-    command: testnet generate-genesis --num-validators=64 --output-ssz=/consensus/genesis.ssz --chain-config-file=/consensus/config.yml
+    command:
+      - testnet
+      - generate-genesis
+      - --num-validators=64
+      - --output-ssz=/consensus/genesis.ssz
+      - --chain-config-file=/consensus/config.yml
     volumes:
       - ./consensus:/consensus
   beacon-chain:
     image: "gcr.io/prysmaticlabs/prysm/beacon-chain:latest"
-    command: --datadir=/consensus/beacondata --min-sync-peers=0 --interop-genesis-state=/consensus/genesis.ssz --interop-eth1data-votes --bootstrap-node= --chain-config-file=/consensus/config.yml --config-file=/consensus/config.yml --chain-id=3238 --execution-endpoint=http://geth:8551 --accept-terms-of-use --jwt-secret=/auth/jwtsecret
+    command:
+      - --datadir=/consensus/beacondata
+      - --min-sync-peers=0
+      - --interop-genesis-state=/consensus/genesis.ssz
+      - --interop-eth1data-votes
+      - --bootstrap-node=
+      - --chain-config-file=/consensus/config.yml
+      - --config-file=/consensus/config.yml
+      - --chain-id=32382
+      - --rpc-host=0.0.0.0
+      - --grpc-gateway-host=0.0.0.0
+      - --execution-endpoint=http://geth:8551
+      - --accept-terms-of-use
+      - --jwt-secret=/auth/jwtsecret
     depends_on:
       geth:
         condition: service_started
@@ -47,12 +78,17 @@ services:
     volumes:
       - ./consensus:/consensus
       - ./jwtsecret:/auth/jwtsecret
-    environment:
-      FLASK_ENV: development
-#  validator:
-#    image: "gcr.io/prysmaticlabs/prysm/validator:latest"
-#    depends_on:
-#      beacon-chain:
-#        condition: service_started
-#    volumes:
-#      - ./config.yml:config.yml
+  validator:
+    image: "gcr.io/prysmaticlabs/prysm/validator:latest"
+    command:
+      - --beacon-rpc-provider=beacon-chain:4000
+      - --datadir=/consensus/validatordata
+      - --accept-terms-of-use
+      - --interop-num-validators=64
+      - --interop-start-index=0
+      - --chain-config-file=/consensus/config.yml
+    depends_on:
+      beacon-chain:
+        condition: service_started
+    volumes:
+      - ./consensus:/consensus
