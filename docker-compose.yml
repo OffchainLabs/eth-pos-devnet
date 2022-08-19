@@ -3,19 +3,10 @@ services:
   # Sets up the genesis configuration for the go-ethereum client from a JSON file.
   geth-genesis:
     image: "ethereum/client-go:latest"
-    command: --datadir=/execution/gethdata init /execution/genesis.json
+    command: --datadir=/execution init /execution/genesis.json
     volumes:
       - ./execution:/execution
-
-  # Imports an account from a secret key provided to go-ethereum.
-  geth-account:
-    image: "ethereum/client-go:latest"
-    command: --datadir=/execution/gethdata account import --password=/execution/geth_password.txt /execution/sk.json
-    depends_on:
-      geth-genesis:
-        condition: service_completed_successfully
-    volumes:
-      - ./execution:/execution
+      - ./execution/genesis.json:/execution/genesis.json
 
   # Runs the go-ethereum execution client with the specified, unlocked account and necessary
   # APIs to allow for proof-of-stake consensus via Prysm.
@@ -28,7 +19,7 @@ services:
       - --authrpc.vhosts=*
       - --authrpc.addr=0.0.0.0
       - --authrpc.jwtsecret=/execution/jwtsecret
-      - --datadir=/execution/gethdata
+      - --datadir=/execution
       - --allow-insecure-unlock
       - --unlock=0x123463a4b065722e99115d6c222f267d9cabb524
       - --password=/execution/geth_password.txt
@@ -39,10 +30,11 @@ services:
       - 8551:8551
       - 8545:8545
     depends_on:
-      geth-account:
+      geth-genesis:
         condition: service_completed_successfully
     volumes:
       - ./execution:/execution
+      - ./execution/geth_password.txt:/execution/geth_password.txt
       - ./jwtsecret:/execution/jwtsecret
 
   # Creates a genesis state for the beacon chain using a YAML configuration file and

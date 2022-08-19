@@ -1,3 +1,4 @@
 consensus/beacondata
+consensus/genesis.ssz
 consensus/validatordata
 execution/gethdata
