@@ -1,34 +1,37 @@
 version: "3.9"
 services:
+  # Sets up the genesis configuration for the go-ethereum client from a JSON file.
   geth-genesis:
     image: "ethereum/client-go:latest"
-    command: --datadir=/gethdata init /config/genesis.json
+    command: --datadir=/execution/gethdata init /execution/genesis.json
     volumes:
-      - ./execution/gethdata:/gethdata
-      - ./execution/genesis.json:/config/genesis.json
+      - ./execution:/execution
+
+  # Imports an account from a secret key provided to go-ethereum.
   geth-account:
     image: "ethereum/client-go:latest"
-    command: --datadir=/gethdata account import --password=/config/geth_password.txt /config/sk.json
+    command: --datadir=/execution/gethdata account import --password=/execution/geth_password.txt /execution/sk.json
     depends_on:
       geth-genesis:
         condition: service_completed_successfully
     volumes:
-      - ./execution/gethdata:/gethdata
-      - ./execution/geth_password.txt:/config/geth_password.txt
-      - ./execution/sk.json:/config/sk.json
+      - ./execution:/execution
+
+  # Runs the go-ethereum execution client with the specified, unlocked account and necessary
+  # APIs to allow for proof-of-stake consensus via Prysm.
   geth:
     image: "ethereum/client-go:latest"
     command:
       - --http
-      - --http.api "eth,engine"
+      - --http.api=eth
       - --http.addr=0.0.0.0
       - --authrpc.vhosts=*
       - --authrpc.addr=0.0.0.0
-      - --authrpc.jwtsecret="/auth/jwtsecret"
-      - --datadir=/gethdata
+      - --authrpc.jwtsecret=/execution/jwtsecret
+      - --datadir=/execution/gethdata
       - --allow-insecure-unlock
-      - --unlock="0x123463a4b065722e99115d6c222f267d9cabb524"
-      - --password="/config/geth_password.txt"
+      - --unlock=0x123463a4b065722e99115d6c222f267d9cabb524
+      - --password=/execution/geth_password.txt
       - --nodiscover
       - --syncmode=full
       - --mine
@@ -39,9 +42,11 @@ services:
       geth-account:
         condition: service_completed_successfully
     volumes:
-      - ./execution/gethdata:/gethdata
-      - ./execution/geth_password.txt:/config/geth_password.txt
-      - ./jwtsecret:/auth/jwtsecret
+      - ./execution:/execution
+      - ./jwtsecret:/execution/jwtsecret
+
+  # Creates a genesis state for the beacon chain using a YAML configuration file and
+  # a deterministic set of 64 validators.
   create-beacon-chain-genesis:
     image: "gcr.io/prysmaticlabs/prysm/cmd/prysmctl:latest"
     command:
@@ -52,22 +57,30 @@ services:
       - --chain-config-file=/consensus/config.yml
     volumes:
       - ./consensus:/consensus
+
+  # Runs a Prysm beacon chain from a specified genesis state created in the previous step
+  # and connects to go-ethereum in the same network as the execution client.
+  # The account used in go-ethereum is set as the suggested fee recipient for transactions
+  # proposed via the validators attached to the beacon node.
   beacon-chain:
     image: "gcr.io/prysmaticlabs/prysm/beacon-chain:latest"
     command:
       - --datadir=/consensus/beacondata
+      # No peers to sync with in this testnet, so setting to 0
       - --min-sync-peers=0
       - --interop-genesis-state=/consensus/genesis.ssz
       - --interop-eth1data-votes
       - --bootstrap-node=
+      # The chain configuration file used for setting up Prysm
       - --chain-config-file=/consensus/config.yml
-      - --config-file=/consensus/config.yml
+      # We specify the chain id used by our execution client
       - --chain-id=32382
       - --rpc-host=0.0.0.0
       - --grpc-gateway-host=0.0.0.0
       - --execution-endpoint=http://geth:8551
       - --accept-terms-of-use
-      - --jwt-secret=/auth/jwtsecret
+      - --jwt-secret=/execution/jwtsecret
+      - --suggested-fee-recipient=0x123463a4b065722e99115d6c222f267d9cabb524
     depends_on:
       geth:
         condition: service_started
@@ -77,7 +90,10 @@ services:
       - 4000:4000
     volumes:
       - ./consensus:/consensus
-      - ./jwtsecret:/auth/jwtsecret
+      - ./jwtsecret:/execution/jwtsecret
+
+  # We run a validator client with 64, deterministically-generated keys that match
+  # The validator keys present in the beacon chain genesis state generated a few steps above.
   validator:
     image: "gcr.io/prysmaticlabs/prysm/validator:latest"
     command:
