@@ -80,6 +80,8 @@ services:
         condition: service_completed_successfully
     ports:
       - 4000:4000
+      - 3500:3500
+      - 8080:8080
     volumes:
       - ./consensus:/consensus
       - ./jwtsecret:/execution/jwtsecret
