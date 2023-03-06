@@ -2,7 +2,7 @@ version: "3.9"
 services:
   # Sets up the genesis configuration for the go-ethereum client from a JSON file.
   geth-genesis:
-    image: "ethereum/client-go:latest"
+    image: "ethereum/client-go:release-1.10"
     command: --datadir=/execution init /execution/genesis.json
     volumes:
       - ./execution:/execution
@@ -11,7 +11,7 @@ services:
   # Runs the go-ethereum execution client with the specified, unlocked account and necessary
   # APIs to allow for proof-of-stake consensus via Prysm.
   geth:
-    image: "docker pull ethereum/client-go:release-1.10"
+    image: "ethereum/client-go:release-1.10"
     command:
       - --http
       - --http.api=eth
@@ -25,7 +25,7 @@ services:
       - --password=/execution/geth_password.txt
       - --nodiscover
       - --syncmode=full
-      - --mine,etherbase=0x123463a4b065722e99115d6c222f267d9cabb524
+      - --mine
     ports:
       - 8551:8551
       - 8545:8545
@@ -55,7 +55,7 @@ services:
   # The account used in go-ethereum is set as the suggested fee recipient for transactions
   # proposed via the validators attached to the beacon node.
   beacon-chain:
-    image: "gcr.io/prysmaticlabs/prysm/beacon-chain:latest"
+    image: "gcr.io/prysmaticlabs/prysm/beacon-chain:HEAD-4d549f"
     command:
       - --datadir=/consensus/beacondata
       # No peers to sync with in this testnet, so setting to 0
