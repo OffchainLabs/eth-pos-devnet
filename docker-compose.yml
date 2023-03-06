@@ -25,7 +25,7 @@ services:
       - --password=/execution/geth_password.txt
       - --nodiscover
       - --syncmode=full
-      - --mine --miner.etherbase=0x123463a4b065722e99115d6c222f267d9cabb524
+      - --mine --etherbase=0x123463a4b065722e99115d6c222f267d9cabb524
     ports:
       - 8551:8551
       - 8545:8545
