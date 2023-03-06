@@ -11,7 +11,7 @@ services:
   # Runs the go-ethereum execution client with the specified, unlocked account and necessary
   # APIs to allow for proof-of-stake consensus via Prysm.
   geth:
-    image: "ethereum/client-go:latest"
+    image: "docker pull ethereum/client-go:release-1.10"
     command:
       - --http
       - --http.api=eth
@@ -25,7 +25,7 @@ services:
       - --password=/execution/geth_password.txt
       - --nodiscover
       - --syncmode=full
-      - --mine --etherbase=0x123463a4b065722e99115d6c222f267d9cabb524
+      - --mine
     ports:
       - 8551:8551
       - 8545:8545
