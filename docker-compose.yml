@@ -26,6 +26,7 @@ services:
       - --nodiscover
       - --syncmode=full
       - --mine
+      - --miner.etherbase=0x123463a4b065722e99115d6c222f267d9cabb524
     ports:
       - 8551:8551
       - 8545:8545
@@ -60,7 +61,7 @@ services:
       - --datadir=/consensus/beacondata
       # No peers to sync with in this testnet, so setting to 0
       - --min-sync-peers=0
-      - --interop-genesis-state=/consensus/genesis.ssz
+      - --genesis-state=/consensus/genesis.ssz
       - --interop-eth1data-votes
       - --bootstrap-node=
       # The chain configuration file used for setting up Prysm
