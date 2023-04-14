@@ -7,7 +7,6 @@ services:
     volumes:
       - ./execution:/execution
       - ./execution/genesis.json:/execution/genesis.json
-
   # Runs the go-ethereum execution client with the specified, unlocked account and necessary
   # APIs to allow for proof-of-stake consensus via Prysm.
   geth:
@@ -25,8 +24,6 @@ services:
       - --password=/execution/geth_password.txt
       - --nodiscover
       - --syncmode=full
-      - --mine
-      - --miner.etherbase=0x123463a4b065722e99115d6c222f267d9cabb524
     ports:
       - 8551:8551
       - 8545:8545
@@ -38,18 +35,22 @@ services:
       - ./execution/geth_password.txt:/execution/geth_password.txt
       - ./jwtsecret:/execution/jwtsecret
 
-  # Creates a genesis state for the beacon chain using a YAML configuration file and
+  #Creates a genesis state for the beacon chain using a YAML configuration file and
   # a deterministic set of 64 validators.
   create-beacon-chain-genesis:
     image: "gcr.io/prysmaticlabs/prysm/cmd/prysmctl:latest"
     command:
       - testnet
       - generate-genesis
+      - --fork=bellatrix
       - --num-validators=64
       - --output-ssz=/consensus/genesis.ssz
       - --chain-config-file=/consensus/config.yml
+      - --geth-genesis-json-in=/execution/genesis.json
+      - --geth-genesis-json-out=/execution/genesis.json
     volumes:
       - ./consensus:/consensus
+      - ./execution:/execution
 
   # Runs a Prysm beacon chain from a specified genesis state created in the previous step
   # and connects to go-ethereum in the same network as the execution client.
@@ -67,11 +68,10 @@ services:
       # The chain configuration file used for setting up Prysm
       - --chain-config-file=/consensus/config.yml
       # We specify the chain id used by our execution client
-      - --chain-id=32382
+      - --chain-id=${CHAIN_ID:-32382}
       - --rpc-host=0.0.0.0
       - --grpc-gateway-host=0.0.0.0
       - --execution-endpoint=http://geth:8551
-      - --chain-id=32382
       - --accept-terms-of-use
       - --jwt-secret=/execution/jwtsecret
       - --suggested-fee-recipient=0x123463a4b065722e99115d6c222f267d9cabb524
