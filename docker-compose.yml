@@ -40,7 +40,7 @@ services:
       - --ws
       - --ws.port=8546
       - --ws.origins='*'
-      - --ws.api eth,net,web3
+      - --ws.api=eth,net,web3
       - --authrpc.vhosts=*
       - --authrpc.addr=0.0.0.0
       - --authrpc.jwtsecret=/execution/jwtsecret
