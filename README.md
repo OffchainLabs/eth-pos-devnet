@@ -1,6 +1,6 @@
 # Ethereum Proof-of-Stake Devnet
 
-This repository provides a docker-compose file to run a fully-functional, local development network for Ethereum with proof-of-stake enabled. This configuration uses [Prysm](https://github.com/prysmaticlabs/prysm) as a consensus client and [go-ethereum](https://github.com/ethereum/go-ethereum) for execution.
+This repository provides a docker-compose file to run a fully-functional, local development network for Ethereum with proof-of-stake enabled. This configuration uses [Prysm](https://github.com/prysmaticlabs/prysm) as a consensus client and [go-ethereum](https://github.com/ethereum/go-ethereum) for execution. **It starts from proof-of-stake** and does not go through the Ethereum merge.
 
 This sets up a single node development network with 64 deterministically-generated validator keys to drive the creation of blocks in an Ethereum proof-of-stake chain. Here's how it works:
 
@@ -15,6 +15,7 @@ First, install Docker. Then, run:
 
 ```
 git clone https://github.com/rauljordan/eth-pos-devnet && cd eth-pos-devnet
+make clean
 docker compose up -d
 ```
 
@@ -31,6 +32,9 @@ $ docker compose up -d
  ⠿ Container eth-pos-devnet-beacon-chain-1                 Started
  ⠿ Container eth-pos-devnet-validator-1                    Started
 ```
+
+Each time you restart, you can wipe the old data using `make clean`.
+
 Next, you can inspect the logs of the different services launched. 
 
 ```
@@ -52,6 +56,7 @@ INFO [08-19|00:44:42.747] Chain head was updated                   number=53 has
 
 # Available Features
 
+- Starts from the Capella Ethereum hard fork
 - The network launches with a [Validator Deposit Contract](https://github.com/ethereum/consensus-specs/blob/dev/solidity_deposit_contract/deposit_contract.sol) deployed at address `0x4242424242424242424242424242424242424242`. This can be used to onboard new validators into the network by depositing 32 ETH into the contract
 - The default account used in the go-ethereum node is address `0x123463a4b065722e99115d6c222f267d9cabb524` which comes seeded with ETH for use in the network. This can be used to send transactions, deploy contracts, and more
 - The default account, `0x123463a4b065722e99115d6c222f267d9cabb524` is also set as the fee recipient for transaction fees proposed validators in Prysm. This address will be receiving the fees of all proposer activity
@@ -62,6 +67,3 @@ INFO [08-19|00:44:42.747] Chain head was updated                   number=53 has
 <img width="1631" alt="5" src="https://user-images.githubusercontent.com/5572669/186052294-70909835-210f-4b13-86a3-cf1f568bb8a3.png">
 <img width="1693" alt="3" src="https://user-images.githubusercontent.com/5572669/186052298-54b82ff2-a901-482e-9e5a-a7c265605ad6.png">
 <img width="1426" alt="1" src="https://user-images.githubusercontent.com/5572669/186052301-dd487b50-183a-4fa6-bbec-216f32d6f03a.png">
-
-
-
