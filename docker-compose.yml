@@ -54,6 +54,7 @@ services:
       - --jwt-secret=/execution/jwtsecret
       - --suggested-fee-recipient=0x123463a4b065722e99115d6c222f267d9cabb524
       - --minimum-peers-per-subnet=0
+      - --enable-debug-rpc-endpoints
     depends_on:
       create-beacon-chain-genesis:
         condition: service_completed_successfully
@@ -74,8 +75,13 @@ services:
     image: "ethereum/client-go:latest"
     command:
       - --http
-      - --http.api=eth
+      - --http.api=eth,net,web3
       - --http.addr=0.0.0.0
+      - --http.corsdomain=*
+      - --ws
+      - --ws.api=eth,net,web3
+      - --ws.addr=0.0.0.0
+      - --ws.origins=*
       - --authrpc.vhosts=*
       - --authrpc.addr=0.0.0.0
       - --authrpc.jwtsecret=/execution/jwtsecret
@@ -88,6 +94,7 @@ services:
     ports:
       - 8551:8551
       - 8545:8545
+      - 8546:8546
     depends_on:
       geth-genesis:
         condition: service_completed_successfully
