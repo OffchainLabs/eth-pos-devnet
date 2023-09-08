@@ -4,7 +4,6 @@
 		"homesteadBlock": 0,
 		"daoForkSupport": true,
 		"eip150Block": 0,
-		"eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
 		"eip155Block": 0,
 		"eip158Block": 0,
 		"byzantiumBlock": 0,
@@ -16,15 +15,12 @@
 		"londonBlock": 0,
 		"arrowGlacierBlock": 0,
 		"grayGlacierBlock": 0,
-		"shanghaiTime": 1681499865,
+		"shanghaiTime": 1694202041,
 		"terminalTotalDifficulty": 0,
-		"clique": {
-			"period": 5,
-			"epoch": 30000
-		}
+		"terminalTotalDifficultyPassed": true
 	},
 	"nonce": "0x0",
-	"timestamp": "0x6439a649",
+	"timestamp": "0x64fb78b9",
 	"extraData": "0x0000000000000000000000000000000000000000000000000000000000000000123463a4b065722e99115d6c222f267d9cabb5240000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
 	"gasLimit": "0x1c9c380",
 	"difficulty": "0x1",
@@ -105,5 +101,7 @@
 	"number": "0x0",
 	"gasUsed": "0x0",
 	"parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-	"baseFeePerGas": null
+	"baseFeePerGas": null,
+	"excessBlobGas": null,
+	"blobGasUsed": null
 }

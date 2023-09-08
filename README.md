@@ -6,8 +6,6 @@ This sets up a single node development network with 64 deterministically-generat
 
 1. We initialize a go-ethereum, proof-of-work development node from a genesis config
 2. We initialize a Prysm beacon chain, proof-of-stake development node from a genesis config
-3. We then start mining in go-ethereum proof-of-work, and concurrently run proof-of-stake using Prysm
-4. Once the mining difficulty of the go-ethereum node reaches `50`, the node switches to proof-of-stake mode by letting Prysm drive the consensus of blocks
 
 The development net is fully functional and allows for the deployment of smart contracts and all the features that also come with the Prysm consensus client such as its rich set of APIs for retrieving data from the blockchain. This development net is a great way to understand the internals of Ethereum proof-of-stake and to mess around with the different settings that make the system possible.
 
@@ -52,10 +50,6 @@ INFO [08-19|00:44:42.733] Imported new potential chain segment     blocks=1 txs=
 INFO [08-19|00:44:42.747] Chain head was updated                   number=53 hash=ee046e..e56b0c root=815538..801014 elapsed="821.084µs"
 ```
 
-Once the mining difficulty of go-ethereum reaches 50, proof-of-stake will be activated and the Prysm beacon chain will be driving consensus of blocks.
-
-<img width="1728" alt="Screen Shot 2022-08-18 at 8 22 57 PM" src="https://user-images.githubusercontent.com/5572669/185518458-25a454a8-b70a-40a8-b3e6-d32770d16ca9.png">
-
 # Available Features
 
 - The network launches with a [Validator Deposit Contract](https://github.com/ethereum/consensus-specs/blob/dev/solidity_deposit_contract/deposit_contract.sol) deployed at address `0x4242424242424242424242424242424242424242`. This can be used to onboard new validators into the network by depositing 32 ETH into the contract
@@ -66,9 +60,7 @@ Once the mining difficulty of go-ethereum reaches 50, proof-of-stake will be act
 - The Prysm client also exposes a gRPC API at http://beacon-chain:4000
 
 <img width="1631" alt="5" src="https://user-images.githubusercontent.com/5572669/186052294-70909835-210f-4b13-86a3-cf1f568bb8a3.png">
-<img width="810" alt="4" src="https://user-images.githubusercontent.com/5572669/186052296-03c18e6f-17f2-4d94-830d-ba7522cc09c8.png">
 <img width="1693" alt="3" src="https://user-images.githubusercontent.com/5572669/186052298-54b82ff2-a901-482e-9e5a-a7c265605ad6.png">
-<img width="1728" alt="2" src="https://user-images.githubusercontent.com/5572669/186052300-80d9e6d5-e2b7-4e1a-9113-1593e5a5872f.png">
 <img width="1426" alt="1" src="https://user-images.githubusercontent.com/5572669/186052301-dd487b50-183a-4fa6-bbec-216f32d6f03a.png">
 
 
