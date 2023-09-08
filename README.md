@@ -15,7 +15,7 @@ First, install Docker. Then, run:
 
 ```
 git clone https://github.com/rauljordan/eth-pos-devnet && cd eth-pos-devnet
-make clean
+./clean.sh
 docker compose up -d
 ```
 
@@ -33,7 +33,7 @@ $ docker compose up -d
  ⠿ Container eth-pos-devnet-validator-1                    Started
 ```
 
-Each time you restart, you can wipe the old data using `make clean`.
+Each time you restart, you can wipe the old data using `./clean.sh`.
 
 Next, you can inspect the logs of the different services launched. 
 
