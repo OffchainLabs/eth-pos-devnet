@@ -1,9 +1,9 @@
 version: "3.9"
 services:
-  #Creates a genesis state for the beacon chain using a YAML configuration file and
+  # Creates a genesis state for the beacon chain using a YAML configuration file and
   # a deterministic set of 64 validators.
   create-beacon-chain-genesis:
-    image: "gcr.io/prysmaticlabs/prysm/cmd/prysmctl:local-devnet"
+    image: "gcr.io/prysmaticlabs/prysm/cmd/prysmctl"
     command:
       - testnet
       - generate-genesis
@@ -18,6 +18,14 @@ services:
       - ./consensus:/consensus
       - ./execution:/execution
 
+  # Removes the database of the go-ethereum execution client to ensure we start from a clean state.
+  # (geth has a `removedb` option, but it asks for a keyboard confirmation, so we use this instead)
+  geth-remove-db:
+    image: "alpine:3.19.0"
+    command: rm -rf /execution/geth
+    volumes:
+      - ./execution:/execution
+
   # Sets up the genesis configuration for the go-ethereum client from a JSON file.
   geth-genesis:
     image: "ethereum/client-go:latest"
@@ -28,13 +36,15 @@ services:
     depends_on:
       create-beacon-chain-genesis:
         condition: service_completed_successfully
+      geth-remove-db:
+        condition: service_completed_successfully
 
   # Runs a Prysm beacon chain from a specified genesis state created in the previous step
   # and connects to go-ethereum in the same network as the execution client.
   # The account used in go-ethereum is set as the suggested fee recipient for transactions
   # proposed via the validators attached to the beacon node.
   beacon-chain:
-    image: "gcr.io/prysmaticlabs/prysm/beacon-chain:v4.0.8"
+    image: "gcr.io/prysmaticlabs/prysm/beacon-chain:v4.1.1"
     command:
       - --datadir=/consensus/beacondata
       # No peers to sync with in this testnet, so setting to 0
@@ -55,6 +65,7 @@ services:
       - --suggested-fee-recipient=0x123463a4b065722e99115d6c222f267d9cabb524
       - --minimum-peers-per-subnet=0
       - --enable-debug-rpc-endpoints
+      - --force-clear-db
     depends_on:
       create-beacon-chain-genesis:
         condition: service_completed_successfully
@@ -108,7 +119,7 @@ services:
   # We run a validator client with 64, deterministically-generated keys that match
   # The validator keys present in the beacon chain genesis state generated a few steps above.
   validator:
-    image: "gcr.io/prysmaticlabs/prysm/validator:v4.0.8"
+    image: "gcr.io/prysmaticlabs/prysm/validator:v4.1.1"
     command:
       - --beacon-rpc-provider=beacon-chain:4000
       - --datadir=/consensus/validatordata
@@ -116,6 +127,7 @@ services:
       - --interop-num-validators=64
       - --interop-start-index=0
       - --chain-config-file=/consensus/config.yml
+      - --force-clear-db
     depends_on:
       beacon-chain:
         condition: service_started
