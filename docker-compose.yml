@@ -1,9 +1,9 @@
 version: "3.9"
 services:
-  #Creates a genesis state for the beacon chain using a YAML configuration file and
+  # Creates a genesis state for the beacon chain using a YAML configuration file and
   # a deterministic set of 64 validators.
   create-beacon-chain-genesis:
-    image: "gcr.io/prysmaticlabs/prysm/cmd/prysmctl:local-devnet"
+    image: "gcr.io/prysmaticlabs/prysm/cmd/prysmctl"
     command:
       - testnet
       - generate-genesis
@@ -44,7 +44,7 @@ services:
   # The account used in go-ethereum is set as the suggested fee recipient for transactions
   # proposed via the validators attached to the beacon node.
   beacon-chain:
-    image: "gcr.io/prysmaticlabs/prysm/beacon-chain:v4.0.8"
+    image: "gcr.io/prysmaticlabs/prysm/beacon-chain:v4.1.1"
     command:
       - --datadir=/consensus/beacondata
       # No peers to sync with in this testnet, so setting to 0
@@ -119,7 +119,7 @@ services:
   # We run a validator client with 64, deterministically-generated keys that match
   # The validator keys present in the beacon chain genesis state generated a few steps above.
   validator:
-    image: "gcr.io/prysmaticlabs/prysm/validator:v4.0.8"
+    image: "gcr.io/prysmaticlabs/prysm/validator:v4.1.1"
     command:
       - --beacon-rpc-provider=beacon-chain:4000
       - --datadir=/consensus/validatordata
