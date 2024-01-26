@@ -125,7 +125,7 @@ services:
       - --beacon-rpc-provider=beacon-chain:4000
       - --datadir=/consensus/validatordata
       - --accept-terms-of-use
-      - --interop-num-validators=128
+      - --interop-num-validators=64
       - --interop-start-index=0
       - --chain-config-file=/consensus/config.yml
       - --force-clear-db
