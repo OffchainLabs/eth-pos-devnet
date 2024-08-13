@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: validator
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: validator
+  template:
+    metadata:
+      labels:
+        app: validator
+    spec:
+      serviceAccountName: kubectl-sa
+      initContainers:
+      - name: wait-for-beacon-chain
+        image: busybox
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        command:
+          - /bin/sh
+          - -c
+          - |
+            echo "Waiting for beacon-chain service to become available..."
+            until nc -zv beacon-chain 4000; do
+              echo "Beacon chain is not available yet. Checking again in 10 seconds..."
+              sleep 10
+            done
+            echo "Beacon chain service is available. Starting validator container."
+
+      containers:
+      - name: validator
+        image: "{{ .Values.image.validator }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        args:
+          - "--beacon-rpc-provider=beacon-chain:4000"
+          - "--datadir={{ .Values.volumes.consensus }}/validatordata"
+          - "--accept-terms-of-use"
+          - "--interop-num-validators=64"
+          - "--interop-start-index=0"
+          - "--chain-config-file={{ .Values.volumes.consensus }}/config.yml"
+          - "--force-clear-db"
+        ports:
+        - containerPort: {{ .Values.ports.validator }}
+        volumeMounts:
+        - name: consensus
+          mountPath: {{ .Values.volumes.consensus }}
+      volumes:
+      - name: consensus
+        hostPath:
+          path: {{ .Values.volumes.localconsensus }}
+      nodeSelector:
+        kubernetes.io/arch: amd64 

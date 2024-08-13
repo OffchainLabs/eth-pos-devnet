@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: validator
+  namespace: default  # Change if necessary
+spec:
+  selector:
+    app: validator
+  ports:
+    - name: grpc-port
+      protocol: TCP
+      port: {{ .Values.ports.validator }}
+      targetPort: {{ .Values.ports.validator }}
+  type: ClusterIP

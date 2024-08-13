@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: beacon-chain
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: beacon-chain
+  template:
+    metadata:
+      labels:
+        app: beacon-chain
+    spec:
+      serviceAccountName: kubectl-sa
+      initContainers:
+      # - name: create-beacon-chain-genesis
+      #   image: "{{ .Values.image.createBeaconChainGenesis }}"
+      #   args:
+      #     - testnet
+      #     - generate-genesis
+      #     - --fork=capella
+      #     - --num-validators=64
+      #     - --genesis-time-delay=60
+      #     - --output-ssz={{ .Values.volumes.consensus }}/genesis.ssz
+      #     - --chain-config-file={{ .Values.volumes.consensus }}/config.yml
+      #     - --geth-genesis-json-in={{ .Values.volumes.execution }}/genesis.json
+      #     - --geth-genesis-json-out={{ .Values.volumes.execution }}/genesis.json
+      #   volumeMounts:
+      #     - name: consensus
+      #       mountPath: {{ .Values.volumes.consensus }}
+      #     - name: execution
+      #       mountPath: {{ .Values.volumes.execution }}
+      - name: wait-for-create-beacon-chain-genesis
+        image: "{{ .Values.image.kubectlImage }}"  # This image includes kubectl and can be used to run wait commands
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        command:
+          - /bin/sh
+          - -c
+          - |
+            echo "Waiting for create-beacon-chain-genesis Job to complete..."
+            until kubectl get job create-beacon-chain-genesis -n {{ .Release.Namespace }} -o jsonpath='{.status.succeeded}' | grep "1"; do
+              echo "Job not completed yet. Checking again in 10 seconds..."
+              sleep 10
+            done
+            echo "create-beacon-chain-genesis Job completed successfully."
+      containers:
+      - name: beacon-chain
+        image: "{{ .Values.image.beaconChain }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        volumeMounts:
+          - name: consensus
+            mountPath: {{ .Values.volumes.consensus }}
+          - name: execution
+            mountPath: {{ .Values.volumes.execution }}
+          - name: jwtsecret-volume
+            mountPath: {{ .Values.volumes.execution }}/jwtsecret
+            subPath: jwtsecret
+        args:
+          - --datadir={{ .Values.volumes.consensus }}/beacondata
+          - --min-sync-peers=0
+          - --genesis-state={{ .Values.volumes.consensus }}/genesis.ssz
+          - --bootstrap-node=
+          - --interop-eth1data-votes
+          - --chain-config-file={{ .Values.volumes.consensus }}/config.yml
+          - --contract-deployment-block=0
+          - --chain-id=32382
+          - --rpc-host=0.0.0.0
+          - --grpc-gateway-host=0.0.0.0
+          - --execution-endpoint=http://geth:8551  #geth clusterIP service
+          - --accept-terms-of-use
+          - --jwt-secret={{ .Values.volumes.execution }}/jwtsecret
+          - --suggested-fee-recipient=0x1d6197196c227e2be52c917b62343f7815638b2d
+          - --minimum-peers-per-subnet=0
+          - --enable-debug-rpc-endpoints
+          - --force-clear-db
+        ports:
+        {{- range .Values.ports.beaconChain }}
+        - containerPort: {{ . }}
+        {{- end }}
+        
+      volumes:
+      - name: consensus
+        hostPath:
+          path: {{ .Values.volumes.localconsensus }}
+      - name: execution
+        hostPath:
+          path: {{ .Values.volumes.localexecution }}
+      - name: jwtsecret-volume
+        secret:
+          secretName: jwtsecret
+      nodeSelector:
+        kubernetes.io/arch: amd64 

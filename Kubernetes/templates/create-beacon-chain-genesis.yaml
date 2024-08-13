@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-beacon-chain-genesis
+spec:
+  template:
+    spec:
+      containers:
+      - name: create-beacon-chain-genesis
+        image: "{{ .Values.image.createBeaconChainGenesis }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        args:
+          - testnet
+          - generate-genesis
+          - --fork=capella
+          - --num-validators=64
+          - --genesis-time-delay=60
+          - --output-ssz={{ .Values.volumes.consensus }}/genesis.ssz
+          - --chain-config-file={{ .Values.volumes.consensus }}/config.yml
+          - --geth-genesis-json-in={{ .Values.volumes.execution }}/genesis.json
+          - --geth-genesis-json-out={{ .Values.volumes.execution }}/genesis.json
+        volumeMounts:
+          - name: consensus
+            mountPath: {{ .Values.volumes.consensus }}
+          - name: execution
+            mountPath: {{ .Values.volumes.execution }}
+      restartPolicy: OnFailure
+      volumes:
+      - name: consensus
+        hostPath:
+          path: {{ .Values.volumes.localconsensus }}
+      - name: execution
+        hostPath:
+          path: {{ .Values.volumes.localexecution }}
+      nodeSelector:
+        kubernetes.io/arch: amd64 

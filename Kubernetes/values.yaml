@@ -1,0 +1,38 @@
+image:
+  createBeaconChainGenesis: gcr.io/prysmaticlabs/prysm/cmd/prysmctl:latest
+  gethRemoveDb: alpine:latest
+  gethGenesis: ethereum/client-go:latest
+  beaconChain: gcr.io/prysmaticlabs/prysm/beacon-chain:latest
+  geth: ethereum/client-go:latest
+  validator: gcr.io/prysmaticlabs/prysm/validator:latest
+  kubectlImage: bitnami/kubectl:latest
+  pullPolicy: IfNotPresent
+
+
+volumes:
+  consensus: /consensus
+  execution: /execution
+  localconsensus: /mnt/docker/consensus
+  localexecution: /mnt/docker/execution
+
+mountPath:
+  consensus: /consensus/config.yml
+  execution: /execution/genesis.json
+
+chainId: 32382
+
+jwtSecret: /execution/jwtsecret
+passwordFile: /execution/geth_password.txt
+
+ports:
+  beaconChain:
+    - 4000
+    - 3500
+    - 8080
+    - 6060
+    - 9090
+  geth:
+    - 8551
+    - 8545
+    - 8546
+  validator: 8081
